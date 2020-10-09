@@ -1,6 +1,6 @@
 //Bibliotecas
-#include <DHT.h>
-#include <Adafrruit_sensor.h>
+#include "DHT.h"
+#include "Adafrruit_sensor.h"
 
 //Definições do sensor DHT22 (Temperatura e Umidade do Ar)
 #define DHTPIN 1;
@@ -22,7 +22,8 @@ int umidade_solo_percent = 0;
 #define rele_bomba 9
 
 //Iluminação
-unsigned long controle_iluminacao
+unsigned long controle_iluminacao;
+unsigned long check_iluminacao;
 
 
 //Definindo código de inicialização
@@ -30,7 +31,6 @@ void setup() {
     Serial.begin(9600);
     dht.begin();
     controle_ilumincao = millis();
-
 }
 
 //Definindo Loop
@@ -47,18 +47,17 @@ void loop() {
     Serial.print(umnidade_ar);
     Serial.print(" %, Temperatura: ");
     Serial.print(temperatura);
-    Serial.println(" Celsius");
+    Serial.println(" °C");
     
     //Atualizando valores de umidade do solo    
     umidade_solo = analogRead(A0);
-    Serial.println(umidade_solo);
     umidade_solo_percent = map(umidade_solo, ar, agua, 0, 100);
 
     //Prints no monitor
     if(umidade_solo_percent >= 100)
-      {Serial.println("Umidade do solo: 100%");}
+      Serial.println("Umidade do solo: 100%");
     else if(umidade_solo_percent <= 0)
-      {Serial.println("Umidade do solo: 0%");}
+      Serial.println("Umidade do solo: 0%");
     else if(umidade_solo_percent >0 && umidade_solo_percent <100)
       {Serial.print("Umidade do solo:")
       Serial.print(umidade_solo_percent);
@@ -77,46 +76,16 @@ void loop() {
     else digitalWrite(rele_resist, LOW);
 
     //Umidade do Solo
-    if(umidade_solo<40) digitalWrite(rele_bomba, HIGH);
+    if(umidade_solo_percent<40) digitalWrite(rele_bomba, HIGH);
     else digitalWrite(rele_bomba, LOW);
 
     //==========================================ILUMINAÇÃO==========================================
     //Alecrim requer 8 horas de período claro 8h=28800000ms. 16h=57600000
-    if(controle_iluminacao > 28800000 && digitalRead(3)==HIGH) 
+    check_ilumincao = millis();
+    if((check_iluminacao - controle_iluminacao) > 28800000 && digitalRead(rele_led)==HIGH)
       {digitalWrite(rele_led, LOW);
-      controle_iluminacao = 0}
-    else if(controle_iluminacao > 57600000 && digitalRead(3)==LOW) 
+      controle_iluminacao = millis();}
+    else if((check_iluminacao - controle_iluminacao) > 57600000 && digitalRead(rele_led)==LOW)
       {digitalWrite(rele_led, HIGH);
-      controle_iluminacao = 0}
-    
-    
-
-    
-
-    
-
-    
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+      controle_iluminacao = millis();}
 }
